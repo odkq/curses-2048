@@ -12,25 +12,33 @@ def draw_board(stdscr, board):
             stdscr.addstr(py, px, value)
 
 def shift_right(board):
-    blanks = []
     while shift_righty(board):
-        # check for win
-        for y in range(3):
-            for x in range(2):
-                if board[y][x] == 2048:
-                    raise Exception('You won mothaf**r')
-        # check for loose (no 0es) while filling an array of blanks
-        # to put a 2 in the next turn
-        loose = True
-        for y in range(3):
-            for x in range(2):
-                if board[y][x] == 0:
-                    blanks.append([y, x])
-        if len(blanks) == 0:
-            raise Exception('You fruiting loosa')
-        # Now put a '2' randomly in any of the blanks
-        y, x = blanks[random.randrange(len(blanks))]
-        board[y][x] = 2
+        pass
+
+    blanks = []
+    loose = True
+    max = 0
+    # check for win
+    for y in range(3):
+        for x in range(2):
+            if board[y][x] == 2048:
+                raise Exception('You won mothaf**r')
+    # check for loose (no 0es) while filling an array of blanks
+    # to put a 2 in the next turn
+    for y in range(3):
+        for x in range(3):
+            if board[y][x] == 0:
+                blanks.append([y, x])
+            elif board[y][x] >= max:
+                max = board[y][x]
+    if len(blanks) == 0:
+        raise Exception('You fruiting loosa with {}'.format(max))
+    # else:
+    #    raise Exception('{} blanks'.format(len(blanks)))
+
+    # Now put a '2' randomly in any of the blanks
+    y, x = blanks[random.randrange(len(blanks))]
+    board[y][x] = 2
 
 def shift_righty(board):
     for y in range(3):
