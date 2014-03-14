@@ -37,7 +37,13 @@ def horizontal_transpose(board):
         board[y][2] = t
 
 def vertical_transpose(board):
-    pass
+    exit = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    for y in range(3):
+        for x in range(3):
+            exit[y][x] = board[x][y]
+    for y in range(3):
+        for x in range(3):
+            board[x][y] = exit[x][y]
 
 def move_left(board):
     horizontal_transpose(board)
@@ -48,7 +54,9 @@ def move_up(board):
     pass
 
 def move_down(board):
-    pass
+    vertical_transpose(board)
+    shift_right(board)
+    vertical_transpose(board)
 
 def exit(board):
     sys.exit(0)
