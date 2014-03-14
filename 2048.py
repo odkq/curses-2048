@@ -54,9 +54,6 @@ def check_win(board):
                 max = board[y][x]
     if len(blanks) == 0:
         return 'You fruiting loosa with {}. press q to exit'.format(max)
-    # else:
-    #    raise Exception('{} blanks'.format(len(blanks)))
-
     # Now put a '2' randomly in any of the blanks
     y, x = blanks[random.randrange(len(blanks))]
     board[y][x] = 2
