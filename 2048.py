@@ -74,6 +74,7 @@ def shift_righty(board):
                 elif board[y][x + 1] == board[y][x]:
                     board[y][x + 1] = board[y][x] * 2
                     board[y][x] = 0
+                    break
     return False
 
 def move_right(board):
