@@ -1,4 +1,24 @@
 #!/usr/bin/env python
+"""
+ 2024.py - Minimal implementation of 2048 game with python/ncurses
+           See http://gabrielecirulli.github.io/2048/ for the original
+           game in js
+
+ Copyright (C) 2014 Pablo Martin <pablo@odkq.com>
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import curses
 import sys
 import random
@@ -15,6 +35,7 @@ def shift_right(board):
     while shift_righty(board):
         pass
 
+def check_win(board):
     blanks = []
     loose = True
     max = 0
@@ -22,7 +43,7 @@ def shift_right(board):
     for y in range(3):
         for x in range(2):
             if board[y][x] == 2048:
-                raise Exception('You won mothaf**r')
+                return 'You won mothaf**r. Press q to exit'
     # check for loose (no 0es) while filling an array of blanks
     # to put a 2 in the next turn
     for y in range(3):
@@ -32,13 +53,14 @@ def shift_right(board):
             elif board[y][x] >= max:
                 max = board[y][x]
     if len(blanks) == 0:
-        raise Exception('You fruiting loosa with {}'.format(max))
+        return 'You fruiting loosa with {}. press q to exit'.format(max)
     # else:
     #    raise Exception('{} blanks'.format(len(blanks)))
 
     # Now put a '2' randomly in any of the blanks
     y, x = blanks[random.randrange(len(blanks))]
     board[y][x] = 2
+    return ''
 
 def shift_righty(board):
     for y in range(3):
@@ -95,9 +117,9 @@ def exit(board):
     sys.exit(0)
 
 def curses_main(stdscr):
-    board = [[4, 0, 0],
-             [1, 2, 0],
-             [0, 2, 2]]
+    board = [[0, 0, 0],
+             [0, 0, 0],
+             [0, 0, 0]]
     keys = { curses.KEY_UP: move_up,
              curses.KEY_DOWN: move_down,
              curses.KEY_LEFT: move_left,
@@ -110,11 +132,18 @@ def curses_main(stdscr):
             stdscr.addstr(y, 0, "+------+------+------+")
         stdscr.addstr(9, 0, "Use cursor keys to move, q to exit")
 
+    s = check_win(board)    # Put the first 2 in place
     while True:
         draw_board(stdscr, board)
         try:
             keys[stdscr.getch()](board)
         except KeyError:
             pass
+        s = check_win(board)
+        if len(s) != 0:
+            stdscr.addstr(9, 0, s)
+            while(stdscr.getch() != 113):
+                pass
+            return
 
 curses.wrapper(curses_main)
