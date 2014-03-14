@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
- 2024.py - Minimal implementation of 2048 game with python/ncurses
+ 2048.py - Minimal implementation of 2048 game with python/ncurses
            See http://gabrielecirulli.github.io/2048/ for the original
            game in js
 
