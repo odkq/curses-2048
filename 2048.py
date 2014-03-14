@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import curses
 import sys
+import random
 
 def draw_board(stdscr, board):
     for y in range(3):
@@ -11,8 +12,25 @@ def draw_board(stdscr, board):
             stdscr.addstr(py, px, value)
 
 def shift_right(board):
+    blanks = []
     while shift_righty(board):
-        pass
+        # check for win
+        for y in range(3):
+            for x in range(2):
+                if board[y][x] == 2048:
+                    raise Exception('You won mothaf**r')
+        # check for loose (no 0es) while filling an array of blanks
+        # to put a 2 in the next turn
+        loose = True
+        for y in range(3):
+            for x in range(2):
+                if board[y][x] == 0:
+                    blanks.append([y, x])
+        if len(blanks) == 0:
+            raise Exception('You fruiting loosa')
+        # Now put a '2' randomly in any of the blanks
+        y, x = blanks[random.randrange(len(blanks))]
+        board[y][x] = 2
 
 def shift_righty(board):
     for y in range(3):
@@ -23,6 +41,9 @@ def shift_righty(board):
                     board[y][x] = 0
                     board[y][x + 1] = t
                     return True
+                elif board[y][x + 1] == board[y][x]:
+                    board[y][x + 1] = board[y][x] * 2
+                    board[y][x] = 0
     return False
 
 def move_right(board):
@@ -68,7 +89,7 @@ def exit(board):
 def curses_main(stdscr):
     board = [[4, 0, 0],
              [1, 2, 0],
-             [0, 2, 7]]
+             [0, 2, 2]]
     keys = { curses.KEY_UP: move_up,
              curses.KEY_DOWN: move_down,
              curses.KEY_LEFT: move_left,
