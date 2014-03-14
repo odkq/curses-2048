@@ -24,8 +24,8 @@ import sys
 import random
 
 def draw_board(stdscr, board):
-    for y in range(3):
-        for x in range(3):
+    for y in range(4):
+        for x in range(4):
             if board[y][x] == 0:
                 value = ' '.center(6)
             else:
@@ -43,14 +43,14 @@ def check_win(board):
     loose = True
     max = 0
     # check for win
-    for y in range(3):
-        for x in range(2):
+    for y in range(4):
+        for x in range(4):
             if board[y][x] == 2048:
                 return 'You won mothaf**r. Press q to exit'
     # check for loose (no 0es) while filling an array of blanks
     # to put a 2 in the next turn
-    for y in range(3):
-        for x in range(3):
+    for y in range(4):
+        for x in range(4):
             if board[y][x] == 0:
                 blanks.append([y, x])
             elif board[y][x] >= max:
@@ -63,8 +63,8 @@ def check_win(board):
     return ''
 
 def shift_righty(board):
-    for y in range(3):
-        for x in range(2):
+    for y in range(4):
+        for x in range(3):
             t = board[y][x]
             if t != 0:
                 if board[y][x + 1] == 0:
@@ -83,18 +83,21 @@ def move_right(board):
 
 def horizontal_transpose(board):
     # transpose all elements
-    for y in range(3):
+    for y in range(4):
         t = board[y][0]
-        board[y][0] = board[y][2]
-        board[y][2] = t
+        e = board[y][1]
+        board[y][0] = board[y][3]
+        board[y][1] = board[y][2]
+        board[y][3] = t
+        board[y][2] = e
 
 def vertical_transpose(board):
-    exit = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    for y in range(3):
-        for x in range(3):
+    exit = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    for y in range(4):
+        for x in range(4):
             exit[y][x] = board[x][y]
-    for y in range(3):
-        for x in range(3):
+    for y in range(4):
+        for x in range(4):
             board[x][y] = exit[x][y]
 
 def move_left(board):
@@ -118,20 +121,21 @@ def exit(board):
     sys.exit(0)
 
 def curses_main(stdscr):
-    board = [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0]]
+    board = [[0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]]
     keys = { curses.KEY_UP: move_up,
              curses.KEY_DOWN: move_down,
              curses.KEY_LEFT: move_left,
              curses.KEY_RIGHT: move_right,
              113: exit }
-    for y in range(7):
+    for y in range(9):
         if y % 2:
-            stdscr.addstr(y, 0, "|      |      |      |")
+            stdscr.addstr(y, 0, "|      |      |      |      |")
         else:
-            stdscr.addstr(y, 0, "+------+------+------+")
-        stdscr.addstr(9, 0, "Use cursor keys to move, q to exit")
+            stdscr.addstr(y, 0, "+------+------+------+------+")
+        stdscr.addstr(11, 0, "Use cursor keys to move, q to exit")
 
     s = check_win(board)    # Put the first 2 in place
     while True:
@@ -142,7 +146,7 @@ def curses_main(stdscr):
             pass
         s = check_win(board)
         if len(s) != 0:
-            stdscr.addstr(9, 0, s)
+            stdscr.addstr(11, 0, s)
             while(stdscr.getch() != 113):
                 pass
             return
