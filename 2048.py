@@ -26,7 +26,10 @@ import random
 def draw_board(stdscr, board):
     for y in range(3):
         for x in range(3):
-            value = str(board[y][x]).center(6)
+            if board[y][x] == 0:
+                value = ' '.center(6)
+            else:
+                value = str(board[y][x]).center(6)
             px = (x * 6) + x + 1
             py = (y * 2) + 1
             stdscr.addstr(py, px, value)
