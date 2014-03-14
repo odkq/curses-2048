@@ -51,7 +51,11 @@ def move_left(board):
     horizontal_transpose(board)
 
 def move_up(board):
-    pass
+    vertical_transpose(board)
+    horizontal_transpose(board)
+    shift_right(board)
+    horizontal_transpose(board)
+    vertical_transpose(board)
 
 def move_down(board):
     vertical_transpose(board)
