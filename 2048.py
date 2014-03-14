@@ -3,14 +3,30 @@ import curses
 import sys
 
 def draw_board(stdscr, board):
-    for i, x, y in map((lambda i: [i, i % 3, i / 3]), range(9)):
-        value = str(board[i]).center(6)
-        px = (x * 6) + x + 1
-        py = (y * 2) + 1
-        stdscr.addstr(py, px, value)
+    for y in range(3):
+        for x in range(3):
+            value = str(board[y][x]).center(6)
+            px = (x * 6) + x + 1
+            py = (y * 2) + 1
+            stdscr.addstr(py, px, value)
+
+def shift_right(board):
+    while shift_righty(board):
+        pass
+
+def shift_righty(board):
+    for y in range(3):
+        for x in range(2):
+            t = board[y][x]
+            if t != 0:
+                if board[y][x + 1] == 0:
+                    board[y][x] = 0
+                    board[y][x + 1] = t
+                    return True
+    return False
 
 def move_right(board):
-    pass
+    shift_right(board)
 
 def move_left(board):
     pass
@@ -25,7 +41,9 @@ def exit(board):
     sys.exit(0)
 
 def curses_main(stdscr):
-    board = [ 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    board = [[4, 0, 0],
+             [1, 2, 0],
+             [0, 2, 7]]
     keys = { curses.KEY_UP: move_up,
              curses.KEY_DOWN: move_down,
              curses.KEY_LEFT: move_left,
