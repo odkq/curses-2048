@@ -27,9 +27,22 @@ def shift_righty(board):
 
 def move_right(board):
     shift_right(board)
+    return board
+
+def horizontal_transpose(board):
+    # transpose all elements
+    for y in range(3):
+        t = board[y][0]
+        board[y][0] = board[y][2]
+        board[y][2] = t
+
+def vertical_transpose(board):
+    pass
 
 def move_left(board):
-    pass
+    horizontal_transpose(board)
+    shift_right(board)
+    horizontal_transpose(board)
 
 def move_up(board):
     pass
