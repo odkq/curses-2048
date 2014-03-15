@@ -32,7 +32,11 @@ def draw_board(stdscr, board):
                 value = str(board[y][x]).center(6)
             px = (x * 6) + x + 1
             py = (y * 2) + 1
-            stdscr.addstr(py, px, value)
+            if curses.has_colors():
+                attr = curses.color_pair(get_color_pair(board[y][x]))
+                stdscr.addstr(py, px, value, attr)
+            else:
+                stdscr.addstr(py, px, value)
 
 def check_win(board):
     blanks = []
@@ -57,6 +61,12 @@ def check_win(board):
     y, x = blanks[random.randrange(len(blanks))]
     board[y][x] = 2
     return ''
+
+def get_color_pair(value):
+    for i in reversed(range(11)):
+        if (value >> i) > 0:
+            return i
+    return 0
 
 def shift_right(board):
     shift_righty(board)
@@ -128,11 +138,21 @@ def curses_main(stdscr):
              [0, 0, 0, 0],
              [0, 0, 0, 0],
              [0, 0, 0, 0]]
+    
     keys = { curses.KEY_UP: move_up,
              curses.KEY_DOWN: move_down,
              curses.KEY_LEFT: move_left,
              curses.KEY_RIGHT: move_right,
              113: exit }
+
+    if curses.has_colors():
+        color = [curses.COLOR_WHITE, curses.COLOR_WHITE, curses.COLOR_CYAN,
+                 curses.COLOR_BLUE, curses.COLOR_GREEN, curses.COLOR_YELLOW,
+                 curses.COLOR_MAGENTA, curses.COLOR_RED, curses.COLOR_RED,
+                 curses.COLOR_RED, curses.COLOR_RED]
+        for i in range(1, 11):
+            curses.init_pair(i, color[i], curses.COLOR_BLACK)
+
     for y in range(9):
         if y % 2:
             stdscr.addstr(y, 0, "|      |      |      |      |")
