@@ -24,19 +24,23 @@ import sys
 import random
 
 def draw_board(stdscr, board):
+    score = 0
     for y in range(4):
         for x in range(4):
+            value = board[y][x]
+            score += value
             if board[y][x] == 0:
-                value = ' '.center(6)
+                svalue = ' '.center(6)
             else:
-                value = str(board[y][x]).center(6)
+                svalue = str(board[y][x]).center(6)
             px = (x * 6) + x + 1
             py = (y * 2) + 1
             if curses.has_colors():
-                attr = curses.color_pair(get_color_pair(board[y][x]))
-                stdscr.addstr(py, px, value, attr)
+                attr = curses.color_pair(get_color_pair(value))
+                stdscr.addstr(py, px, svalue, attr)
             else:
-                stdscr.addstr(py, px, value)
+                stdscr.addstr(py, px, svalue)
+    stdscr.addstr(12, 8, str(score).center(6))
 
 def check_win(board):
     blanks = []
@@ -46,7 +50,7 @@ def check_win(board):
     for y in range(4):
         for x in range(4):
             if board[y][x] == 2048:
-                return 'You won mothaf**r. Press q to exit'
+                return 'You won! Press q to exit                '
     # check for loose (no 0es) while filling an array of blanks
     # to put a 2 in the next turn
     for y in range(4):
@@ -56,7 +60,7 @@ def check_win(board):
             elif board[y][x] >= max:
                 max = board[y][x]
     if len(blanks) == 0:
-        return 'You fruiting loosa with {}. press q to exit'.format(max)
+        return 'You loose. press q to exit                      '
     # Now put a '2' randomly in any of the blanks
     y, x = blanks[random.randrange(len(blanks))]
     board[y][x] = 2
@@ -154,7 +158,9 @@ def curses_main(stdscr):
             stdscr.addstr(y, 0, "|      |      |      |      |")
         else:
             stdscr.addstr(y, 0, "+------+------+------+------+")
-        stdscr.addstr(11, 0, "Use cursor keys to move, q to exit")
+    stdscr.addstr(10, 0, "Join the numbers and get to the 2048 tile!")
+    stdscr.addstr(12, 0, "Score: ")
+    stdscr.addstr(14, 0, "Use cursor keys to move, q to exit")
 
     s = check_win(board)    # Put the first 2 in place
     while True:
@@ -165,7 +171,7 @@ def curses_main(stdscr):
             pass
         s = check_win(board)
         if len(s) != 0:
-            stdscr.addstr(11, 0, s)
+            stdscr.addstr(14, 0, s)
             while(stdscr.getch() != 113):
                 pass
             return
