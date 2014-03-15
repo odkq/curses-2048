@@ -34,10 +34,6 @@ def draw_board(stdscr, board):
             py = (y * 2) + 1
             stdscr.addstr(py, px, value)
 
-def shift_right(board):
-    while shift_righty(board):
-        pass
-
 def check_win(board):
     blanks = []
     loose = True
@@ -62,19 +58,26 @@ def check_win(board):
     board[y][x] = 2
     return ''
 
+def shift_right(board):
+    shift_righty(board)
+    #    pass
+
 def shift_righty(board):
     for y in range(4):
-        for x in range(3):
+        x = 0
+        while x < 3:
             t = board[y][x]
             if t != 0:
-                if board[y][x + 1] == 0:
-                    board[y][x] = 0
-                    board[y][x + 1] = t
-                    return True
-                elif board[y][x + 1] == board[y][x]:
+                if board[y][x + 1] == board[y][x]:
                     board[y][x + 1] = board[y][x] * 2
                     board[y][x] = 0
-                    break
+                    # Shift right and add
+                    x += 1
+                elif board[y][x + 1] == 0:
+                    board[y][x] = 0
+                    board[y][x + 1] = t
+                    # Shift right
+            x += 1
     return False
 
 def move_right(board):
