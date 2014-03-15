@@ -24,6 +24,18 @@ import random
 
 
 class Board:
+    font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
+            '1': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+            '2': [1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+            '3': [1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+            '4': [1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
+            '5': [1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+            '6': [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+            '7': [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+            '8': [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+            '9': [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+            ' ': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+
     def __init__(self, screen):
         self.screen = screen
         self.board = self._blank_board()
@@ -32,24 +44,36 @@ class Board:
         ''' Handy allocator used twice '''
         return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
+    def draw_number(self, x, y, char, attr):
+        gliph = Board.font[char]
+        for dy in range(5):
+            for dx in range(4):
+                if dx == 0:
+                    bit = 0     # Margin
+                else:
+                    bit = gliph[dy * 3 + (dx - 1)]  # minus the margin
+                if bit == 1:
+                    pattr = curses.color_pair(self._get_color_pair(0))
+                    self.screen.addstr(y + dy, x + dx, ' ', pattr)
+                else:
+                    self.screen.addstr(y + dy, x + dx, ' ', attr)
+
+    def draw_tile(self, x, y, value):
+        attr = curses.color_pair(self._get_color_pair(value))
+        chars = str(value).center(4)
+        for dx in range(4):
+            self.draw_number(x + (dx * 4), y, chars[dx], attr)
+
     def draw(self):
         score = 0
         for y in range(4):
             for x in range(4):
                 value = self.board[y][x]
                 score += value
-                if self.board[y][x] == 0:
-                    svalue = ' '.center(6)
-                else:
-                    svalue = str(self.board[y][x]).center(6)
-                px = (x * 6) + x + 1
-                py = (y * 2) + 1
-                if curses.has_colors():
-                    attr = curses.color_pair(self._get_color_pair(value))
-                    self.screen.addstr(py, px, svalue, attr)
-                else:
-                    self.screen.addstr(py, px, svalue)
-        self.screen.addstr(12, 8, str(score).center(6))
+                px = (x * 18) + 1
+                py = (y * 6) + 1
+                self.draw_tile(px, py, value)
+        self.screen.addstr(4, 72, str(score).center(6))
 
     def check_win(self):
         blanks = []
@@ -58,7 +82,7 @@ class Board:
         for y in range(4):
             for x in range(4):
                 if self.board[y][x] == 2048:
-                    return 'You won! Press q to exit                '
+                    return 'You won! Press q to exit'
         # check for loose (no 0es) while filling an array of blanks
         # to put a 2 in the next turn
         for y in range(4):
@@ -68,7 +92,7 @@ class Board:
                 elif self.board[y][x] >= max:
                     max = self.board[y][x]
         if len(blanks) == 0:
-            return 'You loose. press q to exit                      '
+            return 'You loose. press q to exit'
         # Now put a '2' randomly in any of the blanks
         y, x = blanks[random.randrange(len(blanks))]
         self.board[y][x] = 2
@@ -137,7 +161,7 @@ class Board:
         self.vertical_transpose()
 
     def exit(self):
-        raise Exception('quitting')
+        raise Exception('quiting')
 
 
 def curses_main(stdscr):
@@ -147,22 +171,25 @@ def curses_main(stdscr):
             curses.KEY_RIGHT: Board.move_right, 113: Board.exit}
 
     if curses.has_colors():
-        color = [curses.COLOR_WHITE, curses.COLOR_WHITE, curses.COLOR_CYAN,
-                 curses.COLOR_BLUE, curses.COLOR_GREEN, curses.COLOR_YELLOW,
-                 curses.COLOR_MAGENTA, curses.COLOR_RED, curses.COLOR_RED,
-                 curses.COLOR_RED, curses.COLOR_RED]
+        color = [[curses.COLOR_BLACK, curses.COLOR_BLACK],
+                 [curses.COLOR_BLACK, curses.COLOR_WHITE],
+                 [curses.COLOR_BLACK, curses.COLOR_CYAN],
+                 [curses.COLOR_BLACK, curses.COLOR_BLUE],
+                 [curses.COLOR_BLACK, curses.COLOR_GREEN],
+                 [curses.COLOR_BLACK, curses.COLOR_YELLOW],
+                 [curses.COLOR_BLACK, curses.COLOR_MAGENTA],
+                 [curses.COLOR_BLACK, curses.COLOR_RED],
+                 [curses.COLOR_BLACK, curses.COLOR_RED],
+                 [curses.COLOR_BLACK, curses.COLOR_RED],
+                 [curses.COLOR_BLACK, curses.COLOR_RED]]
         for i in range(1, 11):
-            curses.init_pair(i, color[i], curses.COLOR_BLACK)
+            curses.init_pair(i, color[i][0], color[i][1])
 
-    for y in range(9):
-        if y % 2:
-            stdscr.addstr(y, 0, "|      |      |      |      |")
-        else:
-            stdscr.addstr(y, 0, "+------+------+------+------+")
-    stdscr.addstr(10, 0, "Join the numbers and get to the 2048 tile!")
-    stdscr.addstr(12, 0, "Score: ")
-    stdscr.addstr(14, 0, "Use cursor keys to move, q to exit")
-
+    stdscr.addstr(0, 72, ' ==== ')
+    stdscr.addstr(1, 72, ' 2048 ')
+    stdscr.addstr(2, 72, ' ==== ')
+    stdscr.addstr(3, 72, 'SCORE:')
+    stdscr.addstr(4, 72, '      ')
     s = board.check_win()    # Put the first 2 in place
     while True:
         board.draw()
@@ -175,10 +202,17 @@ def curses_main(stdscr):
         s = board.check_win()
         if len(s) != 0:
             break
-
-        stdscr.addstr(14, 0, s)
-        while(stdscr.getch() != 113):
-            pass
-        return
+    # Draw endgame string
+    s = '| ' + s + ' |'
+    frame = '+' + ('-' * (len(s) - 2)) + '+'
+    stdscr.addstr(11, 40 - (len(s) / 2), frame)
+    stdscr.addstr(12, 40 - (len(s) / 2), s)
+    stdscr.addstr(13, 40 - (len(s) / 2), frame)
+    s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
+         'gabrielecirulli.github.io/2048/')
+    stdscr.addstr(24, 1, s)
+    while(stdscr.getch() != 113):
+        pass
+    return
 
 curses.wrapper(curses_main)
