@@ -69,10 +69,6 @@ def get_color_pair(value):
     return 0
 
 def shift_right(board):
-    shift_righty(board)
-    #    pass
-
-def shift_righty(board):
     for y in range(4):
         x = 0
         while x < 3:
