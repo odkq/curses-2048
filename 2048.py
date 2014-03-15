@@ -210,7 +210,7 @@ def curses_main(stdscr):
     stdscr.addstr(13, 40 - (len(s) / 2), frame)
     s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
          'gabrielecirulli.github.io/2048/')
-    stdscr.addstr(24, 1, s)
+    stdscr.addstr(23, 1, s)
     while(stdscr.getch() != 113):
         pass
     return
