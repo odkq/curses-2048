@@ -41,6 +41,7 @@ class Board:
 
     def __init__(self, screen):
         self.screen = screen
+        self.score = 0
         self.board = self._blank_board()
 
     def _blank_board(self):
@@ -77,15 +78,13 @@ class Board:
 
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
-        score = 0
         for y in range(4):
             for x in range(4):
                 value = self.board[y][x]
-                score += value
                 px = (x * 18) + 1
                 py = (y * 6) + 1
                 self.draw_tile(px, py, value)
-        self.screen.addstr(4, 73, str(score).center(6))
+        self.screen.addstr(4, 73, str(self.score).center(6))
 
     def check_win(self, some_movement):
         ''' Check for winning/loosing condition, returning a string to
@@ -163,6 +162,7 @@ class Board:
             if self.board[row][x - 1] == self.board[row][x]:
                 self.board[row][x] = (self.board[row][x]) * 2
                 self.board[row][x - 1] = 0
+                self.score += self.board[row][x]
                 added = True
             x -= 1
         return added
