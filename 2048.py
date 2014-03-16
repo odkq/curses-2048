@@ -45,6 +45,8 @@ class Board:
         return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
     def draw_number(self, x, y, char, attr):
+        ''' Draw a number from x,y to the right (4) and down (5)
+            using it's bitmap, changing font attributes '''
         gliph = Board.font[char]
         for dy in range(5):
             for dx in range(4):
@@ -53,18 +55,21 @@ class Board:
                 else:
                     bit = gliph[dy * 3 + (dx - 1)]  # minus the margin
                 if bit == 1:
-                    pattr = curses.color_pair(self._get_color_pair(0))
+                    pattr = self.attribs[self._get_color_pair(0)]
                     self.screen.addstr(y + dy, x + dx, ' ', pattr)
                 else:
                     self.screen.addstr(y + dy, x + dx, ' ', attr)
 
     def draw_tile(self, x, y, value):
-        attr = curses.color_pair(self._get_color_pair(value))
+        ''' Draw a whole tile by drawing it's four (padded with ' 's)
+            characters '''
+        attr = self.attribs[self._get_color_pair(value)]
         chars = str(value).center(4)
         for dx in range(4):
             self.draw_number(x + (dx * 4), y, chars[dx], attr)
 
     def draw(self):
+        ''' Draw all the tiles in the board and print the score '''
         score = 0
         for y in range(4):
             for x in range(4):
@@ -76,6 +81,9 @@ class Board:
         self.screen.addstr(4, 72, str(score).center(6))
 
     def check_win(self):
+        ''' Check for winning/loosing condition, returning a string to
+            show the user in either case. If '' is returned, the game
+            continues '''
         blanks = []
         max = 0
         # check for win
@@ -99,12 +107,17 @@ class Board:
         return ''
 
     def _get_color_pair(self, value):
+        ''' Return the allocated color pair for a certain power of 2
+            (it's exponent from 0 to 11) '''
         for i in reversed(range(11)):
             if (value >> i) > 0:
                 return i
         return 0
 
-    def shift_right(self):
+    def move_right(self):
+        ''' Perform a right movement. The rest of movements end up
+            doing this after transposing the board '''
+        moved = self._blank_board()
         for y in range(4):
             x = 0
             while x < 3:
@@ -122,7 +135,7 @@ class Board:
                 x += 1
 
     def horizontal_transpose(self):
-        # transpose all elements
+        ''' Transpose all rows left->right right->left '''
         for y in range(4):
             t = self.board[y][0]
             e = self.board[y][1]
@@ -132,6 +145,7 @@ class Board:
             self.board[y][2] = e
 
     def vertical_transpose(self):
+        ''' Transpose all columns up->down down->up '''
         exit = self._blank_board()
         for y in range(4):
             for x in range(4):
@@ -140,24 +154,24 @@ class Board:
             for x in range(4):
                 self.board[x][y] = exit[x][y]
 
-    def move_right(self):
-        self.shift_right()
-
     def move_left(self):
+        ''' Transpose horizontally, move and retranspose '''
         self.horizontal_transpose()
-        self.shift_right()
+        self.move_right()
         self.horizontal_transpose()
 
     def move_up(self):
+        ''' Transpose vertically and horizontally, move and retranspose '''
         self.vertical_transpose()
         self.horizontal_transpose()
-        self.shift_right()
+        self.move_right()
         self.horizontal_transpose()
         self.vertical_transpose()
 
     def move_down(self):
+        ''' Transpose vertically, move and retranspose '''
         self.vertical_transpose()
-        self.shift_right()
+        self.move_right()
         self.vertical_transpose()
 
     def exit(self):
@@ -165,7 +179,10 @@ class Board:
 
 
 def curses_main(stdscr):
+    ''' Main function called by curses_wrapper once in curses mode '''
     board = Board(stdscr)
+
+    # Bind keys with the Board methods for them
     keys = {curses.KEY_UP: Board.move_up, curses.KEY_DOWN: Board.move_down,
             curses.KEY_LEFT: Board.move_left,
             curses.KEY_RIGHT: Board.move_right, 113: Board.exit}
@@ -185,11 +202,26 @@ def curses_main(stdscr):
         for i in range(1, 11):
             curses.init_pair(i, color[i][0], color[i][1])
 
+    # Setup attributes array with colors if the terminal have them, or
+    # just as NORMAL/INVERSE if it has not
+    board.attribs = []
+    for i in range(11):
+        if curses.has_colors():
+            attr = curses.color_pair(i)
+        else:
+            if i == 0:
+                attr = curses.A_NORMAL
+            else:
+                attr = curses.A_REVERSE
+        board.attribs.append(attr)
+
+    # Print the text on the right
     stdscr.addstr(0, 72, ' ==== ')
     stdscr.addstr(1, 72, ' 2048 ')
     stdscr.addstr(2, 72, ' ==== ')
     stdscr.addstr(3, 72, 'SCORE:')
     stdscr.addstr(4, 72, '      ')
+
     s = board.check_win()    # Put the first 2 in place
     while True:
         board.draw()
@@ -202,6 +234,7 @@ def curses_main(stdscr):
         s = board.check_win()
         if len(s) != 0:
             break
+
     # Draw endgame string
     s = '| ' + s + ' |'
     frame = '+' + ('-' * (len(s) - 2)) + '+'
@@ -211,6 +244,7 @@ def curses_main(stdscr):
     s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
          'gabrielecirulli.github.io/2048/')
     stdscr.addstr(23, 1, s)
+    # Wait for a 'q' to be pressed  
     while(stdscr.getch() != 113):
         pass
     return
