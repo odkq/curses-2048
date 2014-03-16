@@ -22,6 +22,9 @@
 import curses
 import random
 
+class ExitException(Exception):
+    def __init__(self, message):
+        self.message = message
 
 class Board:
     font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
@@ -80,7 +83,7 @@ class Board:
                 self.draw_tile(px, py, value)
         self.screen.addstr(4, 72, str(score).center(6))
 
-    def check_win(self):
+    def check_win(self, some_movement):
         ''' Check for winning/loosing condition, returning a string to
             show the user in either case. If '' is returned, the game
             continues '''
@@ -101,9 +104,11 @@ class Board:
                     max = self.board[y][x]
         if len(blanks) == 0:
             return 'You loose. press q to exit'
-        # Now put a '2' randomly in any of the blanks
-        y, x = blanks[random.randrange(len(blanks))]
-        self.board[y][x] = 2
+        # Now put a '2' or a '4' with 10% probability 
+        # randomly in any of the blanks, but only if a movement was reported
+        if some_movement:
+            y, x = blanks[random.randrange(len(blanks))]
+            self.board[y][x] = 2
         return ''
 
     def _get_color_pair(self, value):
@@ -114,25 +119,49 @@ class Board:
                 return i
         return 0
 
+    def move_row(self, row):
+        ''' Try to move elements from left to right, return true if a
+            movement happened '''
+        moved = False
+        for x in range(3):
+            t = self.board[row][x]
+            if t == 0:
+                continue
+            if self.board[row][x + 1] == 0:
+                self.board[row][x] = 0
+                self.board[row][x + 1] = t
+                moved = True
+        return moved
+
+    def add_row(self, row):
+        ''' Try to add elements right-to-left, return true if an addition
+            happened '''
+        added = False
+        x = 3
+        while x > 0:
+            if self.board[row][x] == 0:
+                x -= 1
+                continue
+            if self.board[row][x - 1] == self.board[row][x]:
+                self.board[row][x] = (self.board[row][x]) * 2
+                self.board[row][x - 1] = 0
+                added = True
+            x -= 1
+        return added
+
     def move_right(self):
         ''' Perform a right movement. The rest of movements end up
             doing this after transposing the board '''
-        moved = self._blank_board()
+        some_movement = False
         for y in range(4):
-            x = 0
-            while x < 3:
-                t = self.board[y][x]
-                if t != 0:
-                    if self.board[y][x + 1] == self.board[y][x]:
-                        self.board[y][x + 1] = self.board[y][x] * 2
-                        self.board[y][x] = 0
-                        # Shift right and add
-                        x += 1
-                    elif self.board[y][x + 1] == 0:
-                        self.board[y][x] = 0
-                        self.board[y][x + 1] = t
-                        # Shift right
-                x += 1
+            added = False
+            moved = True
+            while (moved and not added):
+                added = self.add_row(y)
+                moved = self.move_row(y)
+                if added or moved:
+                    some_movement = True
+        return some_movement
 
     def horizontal_transpose(self):
         ''' Transpose all rows left->right right->left '''
@@ -157,25 +186,28 @@ class Board:
     def move_left(self):
         ''' Transpose horizontally, move and retranspose '''
         self.horizontal_transpose()
-        self.move_right()
+        ret = self.move_right()
         self.horizontal_transpose()
+        return ret
 
     def move_up(self):
         ''' Transpose vertically and horizontally, move and retranspose '''
         self.vertical_transpose()
         self.horizontal_transpose()
-        self.move_right()
+        ret = self.move_right()
         self.horizontal_transpose()
         self.vertical_transpose()
+        return ret
 
     def move_down(self):
         ''' Transpose vertically, move and retranspose '''
         self.vertical_transpose()
-        self.move_right()
+        ret = self.move_right()
         self.vertical_transpose()
+        return ret
 
     def exit(self):
-        raise Exception('quiting')
+        raise ExitException('quiting')
 
 
 def curses_main(stdscr):
@@ -222,16 +254,18 @@ def curses_main(stdscr):
     stdscr.addstr(3, 72, 'SCORE:')
     stdscr.addstr(4, 72, '      ')
 
-    s = board.check_win()    # Put the first 2 in place
+    board.check_win(True)    # Put the first 2 2/4 in place
+    board.check_win(True)
     while True:
         board.draw()
         try:
-            keys[stdscr.getch()](board)
+            some_movement = keys[stdscr.getch()](board)
         except KeyError:
+            some_movement = False   # Wrong key, do not add anything in check_
             pass
-        except Exception:
+        except ExitException:
             return
-        s = board.check_win()
+        s = board.check_win(some_movement)
         if len(s) != 0:
             break
 
@@ -244,7 +278,7 @@ def curses_main(stdscr):
     s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
          'gabrielecirulli.github.io/2048/')
     stdscr.addstr(23, 1, s)
-    # Wait for a 'q' to be pressed  
+    # Wait for a 'q' to be pressed
     while(stdscr.getch() != 113):
         pass
     return
