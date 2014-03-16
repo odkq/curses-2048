@@ -179,6 +179,8 @@ class Board:
                 moved = self.move_row(y)
                 if added or moved:
                     some_movement = True
+            if added:
+                moved = self.move_row(y)
         return some_movement
 
     def horizontal_transpose(self):
