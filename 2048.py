@@ -22,9 +22,9 @@
 import curses
 import random
 
+
 class ExitException(Exception):
-    def __init__(self, message):
-        self.message = message
+    pass
 
 class Board:
     font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
@@ -70,6 +70,10 @@ class Board:
         chars = str(value).center(4)
         for dx in range(4):
             self.draw_number(x + (dx * 4), y, chars[dx], attr)
+        # draw the last row
+        dx = x + 16
+        for dy in range(y, y + 5):
+            self.screen.addstr(dy, dx, ' ', attr)
 
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
@@ -81,7 +85,7 @@ class Board:
                 px = (x * 18) + 1
                 py = (y * 6) + 1
                 self.draw_tile(px, py, value)
-        self.screen.addstr(4, 72, str(score).center(6))
+        self.screen.addstr(4, 73, str(score).center(6))
 
     def check_win(self, some_movement):
         ''' Check for winning/loosing condition, returning a string to
@@ -102,13 +106,26 @@ class Board:
                     blanks.append([y, x])
                 elif self.board[y][x] >= max:
                     max = self.board[y][x]
-        if len(blanks) == 0:
-            return 'You loose. press q to exit'
-        # Now put a '2' or a '4' with 10% probability 
+        # Now put a '2' or a '4' with 10% probability
         # randomly in any of the blanks, but only if a movement was reported
         if some_movement:
-            y, x = blanks[random.randrange(len(blanks))]
+            choosen = random.randrange(len(blanks))
+            y, x = blanks[choosen]
             self.board[y][x] = 2
+            del blanks[choosen]     # Remove element for next check 
+        if len(blanks) == 0:
+            # If an addition can be made, then it is not a loose yet
+            lost = True
+            for y in range(4):
+                for x in range(3):
+                    if self.board[y][x + 1] == self.board[y][x]:
+                        lost = False
+            for x in range(4):
+                for y in range(3):
+                    if self.board[y + 1][x] == self.board[y][x]:
+                        lost = False
+            if lost:
+                return 'You loose. press q to exit'
         return ''
 
     def _get_color_pair(self, value):
@@ -248,11 +265,11 @@ def curses_main(stdscr):
         board.attribs.append(attr)
 
     # Print the text on the right
-    stdscr.addstr(0, 72, ' ==== ')
-    stdscr.addstr(1, 72, ' 2048 ')
-    stdscr.addstr(2, 72, ' ==== ')
-    stdscr.addstr(3, 72, 'SCORE:')
-    stdscr.addstr(4, 72, '      ')
+    stdscr.addstr(0, 73, ' ==== ')
+    stdscr.addstr(1, 73, ' 2048 ')
+    stdscr.addstr(2, 73, ' ==== ')
+    stdscr.addstr(3, 73, 'SCORE:')
+    stdscr.addstr(4, 73, '      ')
 
     board.check_win(True)    # Put the first 2 2/4 in place
     board.check_win(True)
@@ -268,7 +285,8 @@ def curses_main(stdscr):
         s = board.check_win(some_movement)
         if len(s) != 0:
             break
-
+    # Redraw board (in case of a win show the 2048)
+    board.draw()
     # Draw endgame string
     s = '| ' + s + ' |'
     frame = '+' + ('-' * (len(s) - 2)) + '+'
