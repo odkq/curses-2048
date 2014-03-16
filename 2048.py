@@ -111,7 +111,8 @@ class Board:
         if some_movement:
             choosen = random.randrange(len(blanks))
             y, x = blanks[choosen]
-            self.board[y][x] = 2
+            randvalue = random.choice([2, 2, 2, 2, 2, 2, 2, 2, 2, 4])
+            self.board[y][x] = randvalue  # Allow for one 4 in ten
             del blanks[choosen]     # Remove element for next check 
         if len(blanks) == 0:
             # If an addition can be made, then it is not a loose yet
