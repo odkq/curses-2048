@@ -41,6 +41,7 @@ class Board:
 
     def __init__(self, screen):
         self.screen = screen
+        self.score = 0
         self.board = self._blank_board()
 
     def _blank_board(self):
@@ -103,7 +104,7 @@ class Board:
         for y in range(4):
             for x in range(4):
                 if self.board[y][x] == 2048:
-                    return 'You won! Press q to exit'
+                    return 'You won!'
         # check for loose (no 0es) while filling an array of blanks
         # to put a 2 in the next turn
         for y in range(4):
@@ -132,7 +133,7 @@ class Board:
                     if self.board[y + 1][x] == self.board[y][x]:
                         lost = False
             if lost:
-                return 'You loose. press q to exit'
+                return 'You loose!'
         return ''
 
     def _get_color_pair(self, value):
@@ -185,6 +186,8 @@ class Board:
                 moved = self.move_row(y)
                 if added or moved:
                     some_movement = True
+            if added:
+                moved = self.move_row(y)
         return some_movement
 
     def horizontal_transpose(self):
@@ -233,8 +236,9 @@ class Board:
     def exit(self):
         raise ExitException('quiting')
 
-    def draw_modal(self, text, key):
+    def draw_modal(self, text, keys):
         ''' Draw a 'modal window' by means of overlapping everything over '''
+        key = None
         lines = text.split('\n')
         maxlength = max([len(x) for x in lines])
         frame = '+' + ('-' * (maxlength + 2)) + '+'
@@ -248,13 +252,15 @@ class Board:
         self.screen.addstr(sy + 1, sx, frame)
         while True:
             ch = self.screen.getch()
-            if key is None:
+            if len(keys) == 0:  # Any key
                 break
-            elif key == ch:
+            elif ch in keys:
+                key = ch
                 break
         self.draw()
+        return key
 
-def curses_main(stdscr):
+def curses_main(stdscr, replay=False):
     ''' Main function called by curses_wrapper once in curses mode '''
     board = Board(stdscr)
 
@@ -301,7 +307,20 @@ def curses_main(stdscr):
     board.check_win(True)    # Put the first 2 2/4 in place
     board.check_win(True)
     board.draw()
-    board.draw_modal('2048\nTry to reach the 2048 tile!', None)
+    s = '''
+                 2048
+
+ HOW TO PLAY: Use your arrow keys to move
+ the tiles. When two tiles with the same
+ number touch, they merge into one!
+ 
+ Press any key to start, press q at any time
+ to quit the game
+
+ curses-2048 <pablo@odkq.com>
+ Original game: gabrielecirulli.github.io/2048'''
+    if not replay:
+        board.draw_modal(s, [])
     while True:
         board.draw()
         try:
@@ -317,20 +336,10 @@ def curses_main(stdscr):
     # Redraw board (in case of a win show the 2048)
     board.draw()
     # Draw endgame string
-    board.draw_modal(s, 113)
-    '''
-    s = '| ' + s + ' |'
-    frame = '+' + ('-' * (len(s) - 2)) + '+'
-    stdscr.addstr(11, 40 - (len(s) / 2), frame)
-    stdscr.addstr(12, 40 - (len(s) / 2), s)
-    stdscr.addstr(13, 40 - (len(s) / 2), frame)
-    s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
-         'gabrielecirulli.github.io/2048/')
-    stdscr.addstr(23, 1, s)
-    '''
-    # Wait for a 'q' to be pressed
-    while(stdscr.getch() != 113):
-        pass
+    s += '\n Press q to exit, or n to start a new game'
+    key = board.draw_modal(s, [113, 110])
+    if key == 110:
+        curses_main(stdscr, replay=True)
     return
 
 curses.wrapper(curses_main)
