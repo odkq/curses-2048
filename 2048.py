@@ -74,6 +74,12 @@ class Board:
         dx = x + 16
         for dy in range(y, y + 5):
             self.screen.addstr(dy, dx, ' ', attr)
+        # draw the black margin (to erase anything drawn by a modal window)
+        pattr = self.attribs[self._get_color_pair(0)]
+        for dy in range(y -1, y + 5):
+            self.screen.addstr(dy, x - 1, ' ', pattr)
+        for dx in range(x - 1, x + 17):
+            self.screen.addstr(y - 1, dx, ' ', pattr)
 
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
@@ -227,6 +233,26 @@ class Board:
     def exit(self):
         raise ExitException('quiting')
 
+    def draw_modal(self, text, key):
+        ''' Draw a 'modal window' by means of overlapping everything over '''
+        lines = text.split('\n')
+        maxlength = max([len(x) for x in lines])
+        frame = '+' + ('-' * (maxlength + 2)) + '+'
+        sx = 40 - ((maxlength + 4) / 2)
+        sy = 12 - (len(lines) / 2)
+        self.screen.addstr(sy, sx, frame)
+        for line in lines:
+            sy += 1
+            s = '| ' + line.ljust(maxlength) + ' |'
+            self.screen.addstr(sy, sx, s)
+        self.screen.addstr(sy + 1, sx, frame)
+        while True:
+            ch = self.screen.getch()
+            if key is None:
+                break
+            elif key == ch:
+                break
+        self.draw()
 
 def curses_main(stdscr):
     ''' Main function called by curses_wrapper once in curses mode '''
@@ -274,6 +300,8 @@ def curses_main(stdscr):
 
     board.check_win(True)    # Put the first 2 2/4 in place
     board.check_win(True)
+    board.draw()
+    board.draw_modal('2048\nTry to reach the 2048 tile!', None)
     while True:
         board.draw()
         try:
@@ -289,6 +317,8 @@ def curses_main(stdscr):
     # Redraw board (in case of a win show the 2048)
     board.draw()
     # Draw endgame string
+    board.draw_modal(s, 113)
+    '''
     s = '| ' + s + ' |'
     frame = '+' + ('-' * (len(s) - 2)) + '+'
     stdscr.addstr(11, 40 - (len(s) / 2), frame)
@@ -297,6 +327,7 @@ def curses_main(stdscr):
     s = ('curses-2048 <pablo@odkq.com> JS Original: ' +
          'gabrielecirulli.github.io/2048/')
     stdscr.addstr(23, 1, s)
+    '''
     # Wait for a 'q' to be pressed
     while(stdscr.getch() != 113):
         pass
