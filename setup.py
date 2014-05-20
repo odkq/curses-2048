@@ -26,7 +26,7 @@ setup(
     author='Pablo Martin <>',
     author_email='pablo@odkq.com',
     url='https://github.com/odkq/curses-2048/',
-    py_modules = ['curses-2048'],
+    py_modules = ['2048'],
     include_package_data=True,
     install_requires=[
     ],
@@ -43,5 +43,5 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     test_suite='tests',
-    entry_points={'console_scripts': ['curses-2048 = curses-2048:main']}
+    entry_points={'console_scripts': ['2048 = 2048:main']}
 )
