@@ -42,6 +42,5 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
-    test_suite='tests',
     entry_points={'console_scripts': ['2048 = 2048:main']}
 )
