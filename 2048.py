@@ -263,6 +263,8 @@ class Board:
 def curses_main(stdscr, replay=False):
     ''' Main function called by curses_wrapper once in curses mode '''
     board = Board(stdscr)
+    curses.curs_set(0)
+    curses.use_default_colors()
 
     # Bind keys with the Board methods for them
     keys = {curses.KEY_UP: Board.move_up, curses.KEY_DOWN: Board.move_down,
