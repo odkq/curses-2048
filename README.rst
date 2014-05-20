@@ -28,10 +28,33 @@ or
 
 
 Usage
---------
+------
 
 .. code:: bash  
     
  $ 2048
-  
+
+256 colors
+----------
+If your terminal has support for 256 colors you will see colors mimicking the
+original game, something like this:
+
+.. image:: http://i.imgur.com/ASZCWBQ.png
+
+Recent versions of xterm and gnome terminal are known to support 256 colors,
+if you do not see them, probably your environment variable TERM is not set
+accordingly. Do
+
+.. code:: bash
+ 
+ $ export TERM=xterm-256color
+
+or, if you are using screen or tmux
+
+.. code:: bash
+
+ $ export TERM=screen-256color
+
+to enjoy curses-2048 in full 256 colors glory.
+
 Use the cursor keys to move and join tiles. Get to the 2048 tile!
