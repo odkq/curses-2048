@@ -3,7 +3,7 @@ curses-2048
 ===============================
 
         
-.. image:: http://i.imgur.com/S4F4wgW.png
+.. image:: http://i.imgur.com/ASZCWBQ.png
 
 
 A terminal/ncurses/python version of the original game at http://gabrielecirulli.github.io/2048
@@ -37,9 +37,10 @@ Usage
 256 colors
 ----------
 If your terminal has support for 256 colors you will see colors mimicking the
-original game, something like this:
+original game, something like the screenshot above. If your terminal only
+supports 16 colors, you will se something like this:
 
-.. image:: http://i.imgur.com/ASZCWBQ.png
+.. image:: http://i.imgur.com/S4F4wgW.png
 
 Recent versions of xterm and gnome terminal are known to support 256 colors,
 if you do not see them, probably your environment variable TERM is not set
