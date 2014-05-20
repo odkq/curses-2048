@@ -342,4 +342,7 @@ def curses_main(stdscr, replay=False):
         curses_main(stdscr, replay=True)
     return
 
-curses.wrapper(curses_main)
+def main():
+    curses.wrapper(curses_main)
+    
+main()
