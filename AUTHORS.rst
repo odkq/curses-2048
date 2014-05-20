@@ -12,3 +12,4 @@ Contributors
 ------------
 
 * Henrique Pereira <ikkibr@gmail.com>
+* Chris Seymour <https://github.com/iiSeymour>
