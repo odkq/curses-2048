@@ -15,15 +15,15 @@ Install
 
 Open your terminal and type:
 
-   ** pip install curses-2048
+   pip install curses-2048
    
 or 
    
-   ** easy_install curses-2048
+   easy_install curses-2048
 
 Usage
 --------
 
-  ** curses-2048
+  2048
   
 Use the cursor keys to move and join tiles. Get to the 2048 tile!
