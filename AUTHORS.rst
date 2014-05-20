@@ -12,3 +12,5 @@ Contributors
 ------------
 
 * Henrique Pereira <ikkibr@gmail.com>
+* Chris Seymour <@iiSeymour>
+
