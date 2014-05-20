@@ -26,7 +26,13 @@ import random
 class ExitException(Exception):
     pass
 
+
 class Board:
+    DARK_FOREGROUND = 12
+    LIGHT_FOREGROUND = 13
+    FRAME = 14
+    BACKGROUND = 15
+
     font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
             '1': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
             '2': [1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
@@ -59,7 +65,7 @@ class Board:
                 else:
                     bit = gliph[dy * 3 + (dx - 1)]  # minus the margin
                 if bit == 1:
-                    pattr = self.attribs[self._get_color_pair(0)]
+                    pattr = self.attribs[self.DARK_FOREGROUND]
                     self.screen.addstr(y + dy, x + dx, ' ', pattr)
                 else:
                     self.screen.addstr(y + dy, x + dx, ' ', attr)
@@ -67,6 +73,22 @@ class Board:
     def draw_tile(self, x, y, value):
         ''' Draw a whole tile by drawing it's four (padded with ' 's)
             characters '''
+        if x >= 55:  # Draw right margin
+            for dy in range(y - 1, y + 5):
+                self.screen.addstr(dy, x + 17, ' ', self.attribs[self.FRAME])
+
+        if value == 0:
+            attr = self.attribs[self.BACKGROUND]
+            frameattr = self.attribs[self.FRAME]
+            for dy in range(y, y + 5):
+                for dx in range(x, x + 17):
+                    self.screen.addstr(dy, dx, ' ', attr)
+                self.screen.addstr(dy, x - 1, ' ', frameattr)
+
+            for dx in range(x - 1, x + 17):
+                self.screen.addstr(y - 1, dx, ' ', frameattr)
+            return
+
         attr = self.attribs[self._get_color_pair(value)]
         chars = str(value).center(4)
         for dx in range(4):
@@ -76,8 +98,8 @@ class Board:
         for dy in range(y, y + 5):
             self.screen.addstr(dy, dx, ' ', attr)
         # draw the black margin (to erase anything drawn by a modal window)
-        pattr = self.attribs[self._get_color_pair(0)]
-        for dy in range(y -1, y + 5):
+        pattr = self.attribs[self.FRAME]
+        for dy in range(y - 1, y + 5):
             self.screen.addstr(dy, x - 1, ' ', pattr)
         for dx in range(x - 1, x + 17):
             self.screen.addstr(y - 1, dx, ' ', pattr)
@@ -120,7 +142,7 @@ class Board:
             y, x = blanks[choosen]
             randvalue = random.choice([2, 2, 2, 2, 2, 2, 2, 2, 2, 4])
             self.board[y][x] = randvalue  # Allow for one 4 in ten
-            del blanks[choosen]     # Remove element for next check 
+            del blanks[choosen]     # Remove element for next check
         if len(blanks) == 0:
             # If an addition can be made, then it is not a loose yet
             lost = True
@@ -260,6 +282,7 @@ class Board:
         self.draw()
         return key
 
+
 def curses_main(stdscr, replay=False):
     ''' Main function called by curses_wrapper once in curses mode '''
     board = Board(stdscr)
@@ -272,24 +295,58 @@ def curses_main(stdscr, replay=False):
             curses.KEY_RIGHT: Board.move_right, 113: Board.exit}
 
     if curses.has_colors():
-        color = [[curses.COLOR_BLACK, curses.COLOR_BLACK],
-                 [curses.COLOR_BLACK, curses.COLOR_WHITE],
-                 [curses.COLOR_BLACK, curses.COLOR_CYAN],
-                 [curses.COLOR_BLACK, curses.COLOR_BLUE],
-                 [curses.COLOR_BLACK, curses.COLOR_GREEN],
-                 [curses.COLOR_BLACK, curses.COLOR_YELLOW],
-                 [curses.COLOR_BLACK, curses.COLOR_MAGENTA],
-                 [curses.COLOR_BLACK, curses.COLOR_RED],
-                 [curses.COLOR_BLACK, curses.COLOR_RED],
-                 [curses.COLOR_BLACK, curses.COLOR_RED],
-                 [curses.COLOR_BLACK, curses.COLOR_RED]]
-        for i in range(1, 11):
-            curses.init_pair(i, color[i][0], color[i][1])
+        if curses.COLORS != 256:
+            # Use standard (16) colors
+            color = [[curses.COLOR_BLACK, curses.COLOR_BLACK],    # 0
+                     [curses.COLOR_BLACK, curses.COLOR_WHITE],    # 2
+                     [curses.COLOR_BLACK, curses.COLOR_CYAN],     # 4
+                     [curses.COLOR_BLACK, curses.COLOR_BLUE],     # 8
+                     [curses.COLOR_BLACK, curses.COLOR_GREEN],    # 16
+                     [curses.COLOR_BLACK, curses.COLOR_YELLOW],   # 32
+                     [curses.COLOR_BLACK, curses.COLOR_MAGENTA],  # 64
+                     [curses.COLOR_BLACK, curses.COLOR_RED],      # 128
+                     [curses.COLOR_BLACK, curses.COLOR_RED],      # 256
+                     [curses.COLOR_BLACK, curses.COLOR_RED],      # 512
+                     [curses.COLOR_BLACK, curses.COLOR_RED],      # 1024
+                     [curses.COLOR_BLACK, curses.COLOR_RED],      # 2048
+                     [curses.COLOR_BLACK, curses.COLOR_BLACK],  # dark fg
+                     [curses.COLOR_BLACK, curses.COLOR_BLACK],  # light fg
+                     [curses.COLOR_BLACK, curses.COLOR_BLACK],  # frame
+                     [curses.COLOR_BLACK, curses.COLOR_BLACK]]  # background
+        else:
+            # Use 256 colors to mimick the original ones in the page
+            # for curses.COLORS to be 256 you must use a suitable terminal
+            # emulator (xterm and gnome terminal are known to support 256
+            # colors) _and_ set your TERM environment variable accordingly
+            # export TERM=xterm-256color or TERM=screen-256color if using
+            # screen or tmux.
+            color = [[0, 240],  # 0
+                     [0, 231],  # 2
+                     [0, 229],  # 4
+                     [0, 215],  # 8
+                     [7, 209],  # 16
+                     [7, 203],  # 32
+                     [7, 196],  # 64
+                     [7, 222],  # 128
+                     [7, 227],  # 256
+                     [7, 226],  # 512
+                     [7, 214],  # 1024
+                     [7, 9],    # 2048
+                     [0, 234],  # dark fg
+                     [0, 250],  # light fg
+                     [0, 240],  # frame
+                     [0, 250]]  # background
+
+        for i in range(1, 16):
+            try:
+                curses.init_pair(i, color[i][0], color[i][1])
+            except:
+                raise Exception('i {}'.format(i))
 
     # Setup attributes array with colors if the terminal have them, or
     # just as NORMAL/INVERSE if it has not
     board.attribs = []
-    for i in range(11):
+    for i in range(16):
         if curses.has_colors():
             attr = curses.color_pair(i)
         else:
@@ -300,11 +357,11 @@ def curses_main(stdscr, replay=False):
         board.attribs.append(attr)
 
     # Print the text on the right
-    stdscr.addstr(0, 73, ' ==== ')
-    stdscr.addstr(1, 73, ' 2048 ')
-    stdscr.addstr(2, 73, ' ==== ')
-    stdscr.addstr(3, 73, 'SCORE:')
-    stdscr.addstr(4, 73, '      ')
+    stdscr.addstr(0, 74, '====  ')
+    stdscr.addstr(1, 74, '2048  ')
+    stdscr.addstr(2, 74, '====  ')
+    stdscr.addstr(3, 74, 'SCORE:')
+    stdscr.addstr(4, 74, '      ')
 
     board.check_win(True)    # Put the first 2 2/4 in place
     board.check_win(True)
@@ -315,7 +372,7 @@ def curses_main(stdscr, replay=False):
  HOW TO PLAY: Use your arrow keys to move
  the tiles. When two tiles with the same
  number touch, they merge into one!
- 
+
  Press any key to start, press q at any time
  to quit the game
 
@@ -344,7 +401,8 @@ def curses_main(stdscr, replay=False):
         curses_main(stdscr, replay=True)
     return
 
+
 def main():
     curses.wrapper(curses_main)
-    
+
 main()
