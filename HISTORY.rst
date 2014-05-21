@@ -13,7 +13,7 @@ History
 ++++++++++++++++++
 
 * Proper initialization of curses colors and hide terminal cursor, by
-  Crys Seymour
+  Chris Seymour
 
 1.2 (2014-05-21)
 ++++++++++++++++
