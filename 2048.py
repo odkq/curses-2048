@@ -49,10 +49,39 @@ class Board:
         self.screen = screen
         self.score = 0
         self.board = self._blank_board()
+        self.calculate_tile_dimensions()
+
+    def calculate_tile_dimensions(self):
+        ''' Get tile height from the terminal window dimensions '''
+        y, x = self.screen.getmaxyx()
+        self.tile_width = 17
+        if y >= 41:
+            self.tile_height = 9
+        elif y >= 33:
+            self.tile_height = 7
+        elif y >= 24:
+            self.tile_height = 5
+        else:
+            raise Exception('Terminal too short to run this (min 24 lines)')
+
+    def resize(self):
+        ''' Called when terminal window is resized '''
+        self.screen.erase()
+        self.calculate_tile_dimensions()
+        self.print_title()
+        self.draw()
 
     def _blank_board(self):
         ''' Handy allocator used twice '''
         return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+
+    def print_title(self):
+        # Print the text on the right
+        self.screen.addstr(0, 74, '====  ')
+        self.screen.addstr(1, 74, '2048  ')
+        self.screen.addstr(2, 74, '====  ')
+        self.screen.addstr(3, 74, 'SCORE:')
+        self.screen.addstr(4, 74, '      ')
 
     def draw_number(self, x, y, char, attr):
         ''' Draw a number from x,y to the right (4) and down (5)
@@ -73,46 +102,69 @@ class Board:
     def draw_tile(self, x, y, value):
         ''' Draw a whole tile by drawing it's four (padded with ' 's)
             characters '''
-        if x >= 55:  # Draw right margin
-            for dy in range(y - 1, y + 5):
-                self.screen.addstr(dy, x + 17, ' ', self.attribs[self.FRAME])
-
         if value == 0:
             attr = self.attribs[self.BACKGROUND]
-            frameattr = self.attribs[self.FRAME]
-            for dy in range(y, y + 5):
-                for dx in range(x, x + 17):
+            for dy in range(y, y + self.tile_height):
+                for dx in range(x, x + self.tile_width):
                     self.screen.addstr(dy, dx, ' ', attr)
-                self.screen.addstr(dy, x - 1, ' ', frameattr)
 
-            for dx in range(x - 1, x + 17):
-                self.screen.addstr(y - 1, dx, ' ', frameattr)
+            # for dx in range(x - 1, x + 17):
+            #    self.screen.addstr(y - 1, dx, ' ', frameattr)
             return
 
         attr = self.attribs[self._get_color_pair(value)]
+        for dy in range(y, y + self.tile_height):
+            for dx in range(x, x + self.tile_width):
+                self.screen.addstr(dy, dx, ' ', attr)
         chars = str(value).center(4)
+        number_y = y + ((self.tile_height - 5)/2)
         for dx in range(4):
-            self.draw_number(x + (dx * 4), y, chars[dx], attr)
+            self.draw_number(x + (dx * 4), number_y, chars[dx], attr)
         # draw the last row
-        dx = x + 16
-        for dy in range(y, y + 5):
-            self.screen.addstr(dy, dx, ' ', attr)
-        # draw the black margin (to erase anything drawn by a modal window)
-        pattr = self.attribs[self.FRAME]
-        for dy in range(y - 1, y + 5):
-            self.screen.addstr(dy, x - 1, ' ', pattr)
-        for dx in range(x - 1, x + 17):
-            self.screen.addstr(y - 1, dx, ' ', pattr)
+        dx = x + self.tile_width - 1
+        # draw the margin (to erase anything drawn by a modal window)
+        #pattr = self.attribs[self.FRAME]
+        #for dy in range(y - 1, y + 5):
+        #    self.screen.addstr(dy, x - 1, ' ', pattr)
+        #for dx in range(x - 1, x + 17):
+        #    self.screen.addstr(y - 1, dx, ' ', pattr)
+
+    def draw_frame(self):
+        ''' Draw frame '''
+        frameattr = self.attribs[self.FRAME]
+        for y in range(5):
+            for x in range(5):
+                px = (x * (self.tile_width + 1))
+                py = (y * (self.tile_height + 1))
+                if x < 4:
+                    for ppx in range(px, px + self.tile_width + 2):
+                        try:
+                            self.screen.addstr(py, ppx, ' ', frameattr)
+                        except:
+                            pass
+                if y < 4:
+                    for ppy in range(py, py + self.tile_height + 1):
+                        try:
+                            self.screen.addstr(ppy, px, ' ', frameattr)
+                        except:
+                            pass
+                        # raise Exception('ppy {}'.format(ppy))
+#            for ppy in range(py, py + 6):
+#                try:
+#                    self.screen.addstr(ppy, 57, ' ', frameattr)
+#                except:
+#                    pass
 
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
         score = 0
+        self.draw_frame()
         for y in range(4):
             for x in range(4):
                 value = self.board[y][x]
                 score += value
-                px = (x * 18) + 1
-                py = (y * 6) + 1
+                px = (x * (self.tile_width + 1)) + 1
+                py = (y * (self.tile_height + 1)) + 1
                 self.draw_tile(px, py, value)
         self.screen.addstr(4, 73, str(score).center(6))
 
@@ -292,7 +344,8 @@ def curses_main(stdscr, replay=False):
     # Bind keys with the Board methods for them
     keys = {curses.KEY_UP: Board.move_up, curses.KEY_DOWN: Board.move_down,
             curses.KEY_LEFT: Board.move_left,
-            curses.KEY_RIGHT: Board.move_right, 113: Board.exit}
+            curses.KEY_RIGHT: Board.move_right, 113: Board.exit,
+            curses.KEY_RESIZE: Board.resize}
 
     if curses.has_colors():
         if curses.COLORS != 256:
@@ -356,12 +409,7 @@ def curses_main(stdscr, replay=False):
                 attr = curses.A_REVERSE
         board.attribs.append(attr)
 
-    # Print the text on the right
-    stdscr.addstr(0, 74, '====  ')
-    stdscr.addstr(1, 74, '2048  ')
-    stdscr.addstr(2, 74, '====  ')
-    stdscr.addstr(3, 74, 'SCORE:')
-    stdscr.addstr(4, 74, '      ')
+    board.print_title()
 
     board.check_win(True)    # Put the first 2 2/4 in place
     board.check_win(True)
