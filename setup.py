@@ -20,7 +20,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='curses-2048',
-    version='1.3.0',
+    version='1.3.1',
     description='2048 implementation with python and ncurses',
     long_description=readme + '\n\n' + history,
     author='Pablo Martin Medrano',
