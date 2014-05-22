@@ -32,6 +32,10 @@ class Board:
     LIGHT_FOREGROUND = 13
     FRAME = 14
     BACKGROUND = 15
+    
+    MIN_X = 80
+    MIN_Y = 24
+    MIN_ERROR = 'Terminal must be at least %dx%d to play!' % (MIN_X, MIN_Y)
 
     font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
             '1': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
@@ -61,8 +65,13 @@ class Board:
             self.tile_height = 7
         elif y >= 24:
             self.tile_height = 5
-        else:
-            raise Exception('Terminal too short to run this (min 24 lines)')
+
+    def minimal_size(self):
+        ''' Check terminal height and width are large enough '''
+        height, width = self.screen.getmaxyx()
+        if width < self.MIN_X or height < self.MIN_Y:
+            return False
+        return True
 
     def resize(self):
         ''' Called when terminal window is resized '''
@@ -76,6 +85,10 @@ class Board:
         return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
     def print_title(self):
+        if not self.minimal_size():
+            self.screen.addstr(0, 0, self.MIN_ERROR)
+            return
+
         # Print the text on the right
         self.screen.addstr(0, 74, '====  ')
         self.screen.addstr(1, 74, '2048  ')
@@ -158,6 +171,11 @@ class Board:
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
         score = 0
+        
+        if not self.minimal_size():
+            self.screen.addstr(0, 0, self.MIN_ERROR)
+            return
+
         self.draw_frame()
         for y in range(4):
             for x in range(4):
@@ -312,6 +330,10 @@ class Board:
 
     def draw_modal(self, text, keys):
         ''' Draw a 'modal window' by means of overlapping everything over '''
+        if not self.minimal_size():
+            self.screen.addstr(0, 0, self.MIN_ERROR)
+            return
+
         key = None
         lines = text.split('\n')
         maxlength = max([len(x) for x in lines])
