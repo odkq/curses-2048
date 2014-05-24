@@ -36,6 +36,7 @@ class Board:
     MIN_X = 80
     MIN_Y = 24
     MIN_ERROR = 'Terminal must be at least %dx%d to play!' % (MIN_X, MIN_Y)
+    MIN_ERROR2 = '(Resize terminal or press q to exit)'
 
     font = {'0': [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
             '1': [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
@@ -85,8 +86,7 @@ class Board:
         return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
     def print_title(self):
-        if not self.minimal_size():
-            self.screen.addstr(0, 0, self.MIN_ERROR)
+        if self.check_minimal_size():
             return
 
         # Print the text on the right
@@ -167,13 +167,24 @@ class Board:
 #                    self.screen.addstr(ppy, 57, ' ', frameattr)
 #                except:
 #                    pass
+    def check_minimal_size(self):
+        if not self.minimal_size():
+            y, x = self.screen.getmaxyx()
+            #if x < len(self.MIN_ERROR):
+            try:
+                self.screen.addstr(y/2, ((x - len(self.MIN_ERROR)) / 2),
+                                       self.MIN_ERROR)
+                self.screen.addstr(y/2 + 1, ((x - len(self.MIN_ERROR2)) / 2),
+                                       self.MIN_ERROR2)
+            except curses.error:
+                pass
+            return True
+        return False
 
     def draw(self):
         ''' Draw all the tiles in the board and print the score '''
         score = 0
-        
-        if not self.minimal_size():
-            self.screen.addstr(0, 0, self.MIN_ERROR)
+        if self.check_minimal_size():
             return
 
         self.draw_frame()
@@ -330,8 +341,7 @@ class Board:
 
     def draw_modal(self, text, keys):
         ''' Draw a 'modal window' by means of overlapping everything over '''
-        if not self.minimal_size():
-            self.screen.addstr(0, 0, self.MIN_ERROR)
+        if self.check_minimal_size():
             return
 
         key = None
