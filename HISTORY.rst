@@ -23,5 +23,10 @@ History
 1.3 (2014-05-22)
 ++++++++++++++++
 
-* Adapt tile height to terminal window height and adjust dynamically if
+* adapt tile height to terminal window height and adjust dynamically if
   resized
+
+1.4 (2014-05-24)
+++++++++++++++++
+
+* Dynamically handle resizing onto smaller than 80x24 terminal size, by Chris Seymour
