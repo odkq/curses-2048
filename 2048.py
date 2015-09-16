@@ -32,7 +32,7 @@ class Board:
     LIGHT_FOREGROUND = 13
     FRAME = 14
     BACKGROUND = 15
-    
+
     MIN_X = 80
     MIN_Y = 24
     MIN_ERROR = 'Terminal must be at least %dx%d to play!' % (MIN_X, MIN_Y)
@@ -485,4 +485,5 @@ def curses_main(stdscr, replay=False):
 def main():
     curses.wrapper(curses_main)
 
-main()
+if __name__ == '__main__':
+    main()
