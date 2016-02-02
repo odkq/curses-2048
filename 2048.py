@@ -32,7 +32,7 @@ class Board:
     LIGHT_FOREGROUND = 13
     FRAME = 14
     BACKGROUND = 15
-    
+
     MIN_X = 80
     MIN_Y = 24
     MIN_ERROR = 'Terminal must be at least %dx%d to play!' % (MIN_X, MIN_Y)
@@ -136,10 +136,10 @@ class Board:
         # draw the last row
         dx = x + self.tile_width - 1
         # draw the margin (to erase anything drawn by a modal window)
-        #pattr = self.attribs[self.FRAME]
-        #for dy in range(y - 1, y + 5):
+        # pattr = self.attribs[self.FRAME]
+        # for dy in range(y - 1, y + 5):
         #    self.screen.addstr(dy, x - 1, ' ', pattr)
-        #for dx in range(x - 1, x + 17):
+        # for dx in range(x - 1, x + 17):
         #    self.screen.addstr(y - 1, dx, ' ', pattr)
 
     def draw_frame(self):
@@ -167,15 +167,22 @@ class Board:
 #                    self.screen.addstr(ppy, 57, ' ', frameattr)
 #                except:
 #                    pass
+
     def check_minimal_size(self):
         if not self.minimal_size():
             y, x = self.screen.getmaxyx()
-            #if x < len(self.MIN_ERROR):
+            # if x < len(self.MIN_ERROR):
             try:
-                self.screen.addstr(y/2, ((x - len(self.MIN_ERROR)) / 2),
-                                       self.MIN_ERROR)
-                self.screen.addstr(y/2 + 1, ((x - len(self.MIN_ERROR2)) / 2),
-                                       self.MIN_ERROR2)
+                self.screen.addstr(
+                    y/2,
+                    ((x - len(self.MIN_ERROR)) / 2),
+                    self.MIN_ERROR
+                )
+                self.screen.addstr(
+                    y/2 + 1,
+                    ((x - len(self.MIN_ERROR2)) / 2),
+                    self.MIN_ERROR2
+                )
             except curses.error:
                 pass
             return True
@@ -485,4 +492,5 @@ def curses_main(stdscr, replay=False):
 def main():
     curses.wrapper(curses_main)
 
-main()
+if __name__ == '__main__':
+    main()
